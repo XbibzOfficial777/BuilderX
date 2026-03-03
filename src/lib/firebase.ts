@@ -20,7 +20,7 @@ export const googleProvider = new GoogleAuthProvider();
 export const database = getDatabase(app);
 export const storage = getStorage(app);
 
-export const CATBOX_USERHASH = process.env.NEXT_PUBLIC_CATBOX_USERHASH || "5248d18542a1e43ae36a18ba0";
+export const CATBOX_USERHASH = process.env.NEXT_PUBLIC_CATBOX_USERHASH || "7eca8a232dfe09aeebe1fa29e";
 export const CATBOX_API_URL = "https://catbox.moe/user/api.php";
 
 export type FileType = 'image' | 'video' | 'audio' | 'document' | 'other';
