@@ -1,21 +1,58 @@
 {
-  "name": "Bibz Cloud",
+  "name": "Catbox Manager Pro",
   "short_name": "Bibz Cloud",
-  "description": "Upload, organize, and share your files seamless",
+  "description": "Upload, organize, and share your files seamlessly with Catbox Manager Pro",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#10b981",
+  "background_color": "#0a0a0f",
+  "theme_color": "#a855f7",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
-      "src": "/logo.png",
-      "sizes": "any",
+      "src": "/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
     }
   ],
-  "categories": ["productivity", "utilities"],
-  "screenshots": [],
+  "categories": ["productivity", "utilities", "photo"],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1344x768",
+      "type": "image/png",
+      "label": "Bibz Cloudddzx"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upload Files",
+      "short_name": "Upload",
+      "description": "Upload new files to Bibzzz Cloud",
+      "url": "/upload",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "My Files",
+      "short_name": "Files",
+      "description": "View your uploaded files",
+      "url": "/files",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Albums",
+      "short_name": "Albums",
+      "description": "Manage your file albums",
+      "url": "/albums",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    }
+  ],
+  "related_applications": [],
   "prefer_related_applications": false
 }
