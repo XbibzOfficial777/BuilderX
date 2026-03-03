@@ -21,16 +21,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Moon,
   Sun,
@@ -50,13 +42,6 @@ import {
   RotateCw,
   ZoomIn,
   ZoomOut,
-  Keyboard,
-  HelpCircle,
-  Download,
-  FileCode,
-  TreePine,
-  LayoutGrid,
-  Settings,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
@@ -65,7 +50,6 @@ import { Canvas } from './canvas';
 import { PropertiesPanel } from './properties-panel';
 import { CodePanel } from './code-panel';
 import { LivePreview } from './live-preview';
-import { WidgetTreePanel } from './widget-tree-panel';
 import { deviceFrames } from '@/lib/widget-definitions';
 
 interface EditorProps {
@@ -107,8 +91,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
   const [projectName, setProjectName] = useState('Untitled Project');
   const [isEditingName, setIsEditingName] = useState(false);
   const [activeTab, setActiveTab] = useState<'canvas' | 'code'>('canvas');
-  const [leftPanelTab, setLeftPanelTab] = useState<'widgets' | 'tree'>('widgets');
-  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Fetch project data
   useEffect(() => {
@@ -154,11 +136,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-      
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         e.preventDefault();
         if (e.shiftKey) {
@@ -174,10 +151,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
-        e.preventDefault();
-        setShowShortcuts(true);
       }
     };
 
@@ -219,27 +192,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
     }
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await fetch(`/api/export/${projectId}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${projectName}.zip`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success('Project exported successfully');
-      } else {
-        toast.error('Failed to export project');
-      }
-    } catch (error) {
-      console.error('Failed to export project:', error);
-      toast.error('Failed to export project');
-    }
-  };
-
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
@@ -251,7 +203,7 @@ export function Editor({ projectId, onBack }: EditorProps) {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <div className="w-16 h-16 rounded-2xl gradient-brand flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -267,7 +219,7 @@ export function Editor({ projectId, onBack }: EditorProps) {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Top Bar */}
-      <header className="h-14 border-b bg-card/80 backdrop-blur-xl flex items-center justify-between px-4 shrink-0">
+      <header className="h-14 border-b bg-card/50 backdrop-blur-xl flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -307,103 +259,57 @@ export function Editor({ projectId, onBack }: EditorProps) {
 
         <div className="flex items-center gap-1">
           {/* Undo/Redo */}
-          <div className="hidden sm:flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={undo}
-                    disabled={!canUndo}
-                    className="h-8 w-8"
-                  >
-                    <Undo className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={undo}
+                  disabled={!canUndo}
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={redo}
-                    disabled={!canRedo}
-                    className="h-8 w-8"
-                  >
-                    <Redo className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={redo}
+                  disabled={!canRedo}
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-            <Separator orientation="vertical" className="h-6 mx-1" />
-          </div>
+          <Separator orientation="vertical" className="h-6 mx-1" />
 
           {/* Panel toggles */}
-          <div className="hidden md:flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleLeftPanel}
-                    className="h-8 w-8"
-                  >
-                    {isLeftPanelOpen ? (
-                      <PanelLeftClose className="h-4 w-4" />
-                    ) : (
-                      <PanelLeft className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Toggle Left Panel</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleRightPanel}
-                    className="h-8 w-8"
-                  >
-                    {isRightPanelOpen ? (
-                      <PanelRightClose className="h-4 w-4" />
-                    ) : (
-                      <PanelRight className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Toggle Right Panel</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <Separator orientation="vertical" className="h-6 mx-1" />
-          </div>
-
-          {/* View toggles */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={activeTab === 'canvas' ? 'default' : 'ghost'}
+                  variant="ghost"
                   size="icon"
-                  onClick={() => setActiveTab('canvas')}
-                  className="h-8 w-8"
+                  onClick={toggleLeftPanel}
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  {isLeftPanelOpen ? (
+                    <PanelLeftClose className="h-4 w-4" />
+                  ) : (
+                    <PanelLeft className="h-4 w-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Canvas View</TooltipContent>
+              <TooltipContent>Toggle Widget Library</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -411,18 +317,24 @@ export function Editor({ projectId, onBack }: EditorProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={activeTab === 'code' ? 'default' : 'ghost'}
+                  variant="ghost"
                   size="icon"
-                  onClick={() => setActiveTab('code')}
-                  className="h-8 w-8"
+                  onClick={toggleRightPanel}
                 >
-                  <Code className="h-4 w-4" />
+                  {isRightPanelOpen ? (
+                    <PanelRightClose className="h-4 w-4" />
+                  ) : (
+                    <PanelRight className="h-4 w-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Code View</TooltipContent>
+              <TooltipContent>Toggle Properties Panel</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
+          {/* Preview toggle */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -430,12 +342,27 @@ export function Editor({ projectId, onBack }: EditorProps) {
                   variant={isPreviewOpen ? 'default' : 'ghost'}
                   size="icon"
                   onClick={togglePreview}
-                  className="h-8 w-8"
                 >
                   <Play className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Toggle Preview</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Code toggle */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={activeTab === 'code' ? 'default' : 'ghost'}
+                  size="icon"
+                  onClick={() => setActiveTab(activeTab === 'code' ? 'canvas' : 'code')}
+                >
+                  <Code className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Toggle Code View</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -446,59 +373,23 @@ export function Editor({ projectId, onBack }: EditorProps) {
             size="sm"
             onClick={handleSave}
             disabled={isSaving}
-            className="gradient-brand text-white"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
           >
             {isSaving ? (
               <Loader2 className="h-4 w-4 animate-spin mr-1" />
             ) : (
               <Save className="h-4 w-4 mr-1" />
             )}
-            <span className="hidden sm:inline">Save</span>
+            Save
           </Button>
 
-          {/* Export */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExport}
-                  className="gap-1"
-                >
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Export as ZIP</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
           <Separator orientation="vertical" className="h-6 mx-1" />
-
-          {/* Help */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowShortcuts(true)}
-                  className="h-8 w-8"
-                >
-                  <Keyboard className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Keyboard Shortcuts</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
           {/* Theme */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="h-8 w-8"
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -507,9 +398,9 @@ export function Editor({ projectId, onBack }: EditorProps) {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                <div className="w-7 h-7 rounded-full gradient-brand flex items-center justify-center">
-                  <span className="text-xs font-medium text-white">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <span className="text-sm font-medium text-white">
                     {user?.name?.[0] || user?.email?.[0] || 'U'}
                   </span>
                 </div>
@@ -517,10 +408,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-muted-foreground">
-                {user?.email}
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -533,7 +420,7 @@ export function Editor({ projectId, onBack }: EditorProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Widget Library & Tree */}
+        {/* Left Panel - Widget Library */}
         <AnimatePresence>
           {isLeftPanelOpen && (
             <motion.div
@@ -541,26 +428,9 @@ export function Editor({ projectId, onBack }: EditorProps) {
               animate={{ width: 280, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="border-r bg-card shrink-0 overflow-hidden flex flex-col"
+              className="border-r bg-card shrink-0 overflow-hidden"
             >
-              <Tabs value={leftPanelTab} onValueChange={(v) => setLeftPanelTab(v as 'widgets' | 'tree')} className="flex-1 flex flex-col">
-                <TabsList className="w-full justify-start rounded-none border-b h-10 px-2 bg-transparent">
-                  <TabsTrigger value="widgets" className="gap-1 data-[state=active]:bg-muted">
-                    <LayoutGrid className="h-3.5 w-3.5" />
-                    Widgets
-                  </TabsTrigger>
-                  <TabsTrigger value="tree" className="gap-1 data-[state=active]:bg-muted">
-                    <TreePine className="h-3.5 w-3.5" />
-                    Tree
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="widgets" className="flex-1 mt-0 overflow-hidden">
-                  <WidgetLibrary />
-                </TabsContent>
-                <TabsContent value="tree" className="flex-1 mt-0 overflow-hidden">
-                  <WidgetTreePanel />
-                </TabsContent>
-              </Tabs>
+              <WidgetLibrary />
             </motion.div>
           )}
         </AnimatePresence>
@@ -570,13 +440,13 @@ export function Editor({ projectId, onBack }: EditorProps) {
           {activeTab === 'canvas' ? (
             <>
               {/* Canvas Toolbar */}
-              <div className="h-11 border-b bg-muted/50 flex items-center px-3 gap-2 shrink-0">
+              <div className="h-10 border-b bg-muted/50 flex items-center px-2 gap-2 shrink-0">
                 {/* Device Selector */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-1 h-8">
+                    <Button variant="ghost" size="sm" className="gap-1">
                       <Smartphone className="h-4 w-4" />
-                      <span className="hidden sm:inline">{selectedDevice.name}</span>
+                      {selectedDevice.name}
                       <ChevronDown className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -588,7 +458,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
                         <DropdownMenuItem
                           key={device.id}
                           onClick={() => setDevice(device)}
-                          className={selectedDevice.id === device.id ? 'bg-muted' : ''}
                         >
                           {device.name} ({device.width}x{device.height})
                         </DropdownMenuItem>
@@ -601,7 +470,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
                         <DropdownMenuItem
                           key={device.id}
                           onClick={() => setDevice(device)}
-                          className={selectedDevice.id === device.id ? 'bg-muted' : ''}
                         >
                           {device.name} ({device.width}x{device.height})
                         </DropdownMenuItem>
@@ -619,9 +487,8 @@ export function Editor({ projectId, onBack }: EditorProps) {
                         variant="ghost"
                         size="icon"
                         onClick={toggleRotation}
-                        className="h-8 w-8"
                       >
-                        <RotateCw className={`h-4 w-4 ${isRotated ? 'text-primary' : ''}`} />
+                        <RotateCw className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Rotate Device</TooltipContent>
@@ -638,7 +505,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
-                        className="h-8 w-8"
                       >
                         <ZoomOut className="h-4 w-4" />
                       </Button>
@@ -647,7 +513,7 @@ export function Editor({ projectId, onBack }: EditorProps) {
                   </Tooltip>
                 </TooltipProvider>
 
-                <span className="text-sm text-muted-foreground w-12 text-center font-mono">
+                <span className="text-sm text-muted-foreground w-12 text-center">
                   {Math.round(zoom * 100)}%
                 </span>
 
@@ -658,7 +524,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => setZoom(Math.min(2, zoom + 0.25))}
-                        className="h-8 w-8"
                       >
                         <ZoomIn className="h-4 w-4" />
                       </Button>
@@ -669,7 +534,7 @@ export function Editor({ projectId, onBack }: EditorProps) {
               </div>
 
               {/* Canvas Area */}
-              <div className="flex-1 overflow-auto bg-muted/30 p-4 grid-pattern">
+              <div className="flex-1 overflow-auto bg-muted/30 p-4">
                 <Canvas />
               </div>
             </>
@@ -697,48 +562,6 @@ export function Editor({ projectId, onBack }: EditorProps) {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Keyboard Shortcuts Dialog */}
-      <Dialog open={showShortcuts} onOpenChange={setShowShortcuts}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Keyboard className="h-5 w-5" />
-              Keyboard Shortcuts
-            </DialogTitle>
-            <DialogDescription>
-              Use these shortcuts to work faster in FlutterForge
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2 py-4">
-            {[
-              { keys: ['Ctrl', 'S'], action: 'Save project' },
-              { keys: ['Ctrl', 'Z'], action: 'Undo' },
-              { keys: ['Ctrl', 'Y'], action: 'Redo' },
-              { keys: ['Ctrl', 'Shift', 'Z'], action: 'Redo (alternate)' },
-              { keys: ['Ctrl', '/'], action: 'Show shortcuts' },
-              { keys: ['Delete'], action: 'Delete selected widget' },
-              { keys: ['Ctrl', 'D'], action: 'Duplicate widget' },
-            ].map((shortcut, i) => (
-              <div key={i} className="flex items-center justify-between py-2">
-                <span className="text-sm text-muted-foreground">{shortcut.action}</span>
-                <div className="flex items-center gap-1">
-                  {shortcut.keys.map((key, j) => (
-                    <React.Fragment key={j}>
-                      <kbd className="px-2 py-1 text-xs font-mono bg-muted rounded border">
-                        {key}
-                      </kbd>
-                      {j < shortcut.keys.length - 1 && (
-                        <span className="text-muted-foreground">+</span>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
