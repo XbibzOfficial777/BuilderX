@@ -6,3 +6,4 @@ export { Canvas } from './canvas';
 export { PropertiesPanel } from './properties-panel';
 export { CodePanel } from './code-panel';
 export { LivePreview } from './live-preview';
+export { WidgetTreePanel } from './widget-tree-panel';

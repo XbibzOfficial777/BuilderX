@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEditorStore } from '@/stores/editor-store';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,12 @@ import {
   Trash2,
   ChevronRight,
   Plus,
+  Move,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { getWidgetDefinition, type WidgetDefinition } from '@/lib/widget-definitions';
 import type { WidgetNode } from '@/types';
@@ -56,6 +62,8 @@ export function Canvas() {
   } = useEditorStore();
 
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{ parentId: string | null; index: number } | null>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const deviceWidth = isRotated ? selectedDevice.height : selectedDevice.width;
   const deviceHeight = isRotated ? selectedDevice.width : selectedDevice.height;
@@ -68,12 +76,14 @@ export function Canvas() {
 
   const handleDragLeave = useCallback(() => {
     setDragOverId(null);
+    setDropIndicator(null);
   }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent, parentId: string | null) => {
       e.preventDefault();
       setDragOverId(null);
+      setDropIndicator(null);
 
       const widgetData = e.dataTransfer.getData('widget');
       if (!widgetData) return;
@@ -99,6 +109,7 @@ export function Canvas() {
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOverId(null);
+      setDropIndicator(null);
 
       const widgetData = e.dataTransfer.getData('widget');
       if (!widgetData) return;
@@ -130,41 +141,68 @@ export function Canvas() {
 
   return (
     <div
+      ref={canvasRef}
       className="flex-1 flex items-center justify-center"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleCanvasDrop}
     >
       <motion.div
-        className="bg-background rounded-xl shadow-2xl overflow-hidden border"
+        className="bg-background rounded-2xl device-frame overflow-hidden relative"
         style={{
           width: deviceWidth * zoom,
           height: deviceHeight * zoom,
           maxWidth: '100%',
           maxHeight: '100%',
         }}
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
         {/* Device Frame Header */}
-        <div className="h-6 bg-muted flex items-center justify-center border-b">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-[10px] text-muted-foreground">
-              {selectedDevice.name} - {deviceWidth}x{deviceHeight}
-            </span>
+        <div className="h-7 bg-gradient-to-r from-muted via-muted/80 to-muted flex items-center justify-between px-3 border-b shrink-0">
+          <div className="flex items-center gap-1.5">
+            {selectedDevice.os === 'ios' ? (
+              <div className="w-16 h-4 bg-black/80 rounded-full" />
+            ) : (
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+                <div className="w-12 h-1.5 rounded-full bg-muted-foreground/20" />
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <span>{deviceWidth}x{deviceHeight}</span>
           </div>
         </div>
 
         {/* Canvas Content */}
-        <ScrollArea className="h-[calc(100%-24px)]">
+        <ScrollArea className="h-[calc(100%-28px)]">
           <div
-            className="p-4 min-h-full"
+            className="p-2 min-h-full relative"
             style={{
               width: deviceWidth * zoom,
-              minHeight: (deviceHeight - 24) * zoom,
+              minHeight: (deviceHeight - 28) * zoom,
             }}
           >
+            {/* Empty State */}
+            {widgetTree.children.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 flex items-center justify-center p-4"
+              >
+                <div className="widget-drop-zone rounded-xl p-8 text-center max-w-xs">
+                  <div className="w-16 h-16 rounded-2xl gradient-brand mx-auto mb-4 flex items-center justify-center">
+                    <Plus className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-medium mb-1">Start Building</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Drag widgets from the left panel or double-click to add them here
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
             <WidgetNodeComponent
               node={widgetTree}
               isSelected={selectedWidgetId === widgetTree.id}
@@ -187,6 +225,7 @@ export function Canvas() {
               updateWidget={updateWidget}
               deleteWidget={deleteWidget}
               duplicateWidget={duplicateWidget}
+              isRoot
             />
           </div>
         </ScrollArea>
@@ -217,6 +256,7 @@ interface WidgetNodeComponentProps {
   updateWidget: (id: string, props: Record<string, unknown>) => void;
   deleteWidget: (id: string) => void;
   duplicateWidget: (id: string) => void;
+  isRoot?: boolean;
 }
 
 function WidgetNodeComponent({
@@ -240,9 +280,11 @@ function WidgetNodeComponent({
   updateWidget,
   deleteWidget,
   duplicateWidget,
+  isRoot = false,
 }: WidgetNodeComponentProps) {
   const definition = getWidgetDefinition(node.type);
   const canHaveChildren = ['Row', 'Column', 'Stack', 'Container', 'Card', 'ListView', 'GridView', 'Wrap', 'Expanded', 'Scaffold', 'AppBar', 'Drawer'].includes(node.type);
+  const isLayoutWidget = ['Row', 'Column', 'Stack', 'ListView', 'GridView', 'Wrap'].includes(node.type);
 
   const getWidgetStyle = (): React.CSSProperties => {
     const style: React.CSSProperties = {};
@@ -265,19 +307,27 @@ function WidgetNodeComponent({
     if (node.properties.margin) {
       style.margin = Number(node.properties.margin) * zoom;
     }
+    if (node.properties.elevation && node.type === 'Card') {
+      style.boxShadow = `0 ${Number(node.properties.elevation) * zoom}px ${Number(node.properties.elevation) * 2 * zoom}px rgba(0,0,0,0.1)`;
+    }
 
     return style;
   };
 
   const getWidgetContent = () => {
+    const textZoom = Math.max(0.7, Math.min(1.3, zoom));
+    
     switch (node.type) {
       case 'Text':
         return (
           <span
+            className="block"
             style={{
-              fontSize: Number(node.properties.fontSize || 16) * zoom,
+              fontSize: Number(node.properties.fontSize || 16) * textZoom,
               color: String(node.properties.color || 'inherit'),
-              fontWeight: node.properties.fontWeight === 'bold' ? 'bold' : undefined,
+              fontWeight: node.properties.fontWeight === 'bold' ? 'bold' : 
+                          node.properties.fontWeight?.toString().startsWith('w') ? 500 : undefined,
+              textAlign: String(node.properties.textAlign || 'left') as 'left' | 'center' | 'right' | 'justify',
             }}
           >
             {String(node.properties.text || 'Text')}
@@ -286,6 +336,7 @@ function WidgetNodeComponent({
       case 'Icon':
         return (
           <Star
+            className="inline-block"
             style={{
               width: Number(node.properties.size || 24) * zoom,
               height: Number(node.properties.size || 24) * zoom,
@@ -298,36 +349,67 @@ function WidgetNodeComponent({
           <img
             src={String(node.properties.src || 'https://via.placeholder.com/150')}
             alt="Widget"
+            className="block max-w-full"
             style={{
               width: Number(node.properties.width || 100) * zoom,
               height: Number(node.properties.height || 100) * zoom,
-              objectFit: 'cover',
+              objectFit: String(node.properties.fit || 'cover') as 'cover' | 'contain' | 'fill',
             }}
           />
         );
       case 'TextField':
         return (
-          <input
-            type="text"
-            placeholder={String(node.properties.hintText || node.properties.label || 'Input')}
-            className="w-full px-2 py-1 border rounded text-sm"
-            style={{ fontSize: 14 * zoom }}
-            readOnly
-          />
+          <div className="w-full">
+            <label className="text-[10px] text-muted-foreground mb-0.5 block">
+              {String(node.properties.label || 'Label')}
+            </label>
+            <input
+              type="text"
+              placeholder={String(node.properties.hintText || 'Enter text')}
+              className="w-full px-2 py-1.5 border rounded text-sm bg-background"
+              style={{ fontSize: 12 * textZoom }}
+              readOnly
+            />
+          </div>
         );
       case 'ElevatedButton':
       case 'OutlinedButton':
       case 'TextButton':
         return (
           <button
-            className="px-4 py-2 rounded text-sm font-medium"
+            className="px-3 py-1.5 rounded text-sm font-medium transition-all"
             style={{
               backgroundColor: node.type === 'ElevatedButton' ? String(node.properties.color || '#2196F3') : undefined,
               color: node.type === 'ElevatedButton' ? '#fff' : String(node.properties.color || '#2196F3'),
               border: node.type === 'OutlinedButton' ? `1px solid ${node.properties.color || '#2196F3'}` : undefined,
+              fontSize: 12 * textZoom,
+              boxShadow: node.type === 'ElevatedButton' ? '0 2px 4px rgba(0,0,0,0.1)' : undefined,
             }}
           >
             {String(node.properties.label || 'Button')}
+          </button>
+        );
+      case 'FloatingActionButton':
+        return (
+          <button
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{
+              backgroundColor: String(node.properties.color || '#2196F3'),
+            }}
+          >
+            <Plus className="h-5 w-5 text-white" />
+          </button>
+        );
+      case 'IconButton':
+        return (
+          <button className="p-2 rounded-full hover:bg-muted/50 transition-colors">
+            <Star
+              style={{
+                width: Number(node.properties.size || 24) * zoom,
+                height: Number(node.properties.size || 24) * zoom,
+                color: String(node.properties.color || 'currentColor'),
+              }}
+            />
           </button>
         );
       case 'CircularProgressIndicator':
@@ -342,11 +424,23 @@ function WidgetNodeComponent({
             }}
           />
         );
+      case 'LinearProgressIndicator':
+        return (
+          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Number(node.properties.value || 0.5) * 100}%`,
+                backgroundColor: String(node.properties.color || '#2196F3'),
+              }}
+            />
+          </div>
+        );
       case 'Divider':
         return (
           <hr
+            className="w-full border-0"
             style={{
-              width: '100%',
               height: Number(node.properties.thickness || 1),
               backgroundColor: String(node.properties.color || '#CCCCCC'),
             }}
@@ -362,22 +456,72 @@ function WidgetNodeComponent({
             }}
           />
         );
+      case 'Checkbox':
+        return (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={Boolean(node.properties.value)}
+              readOnly
+              className="w-4 h-4 rounded border"
+            />
+            <span style={{ fontSize: 12 * textZoom }}>{String(node.properties.label || 'Checkbox')}</span>
+          </label>
+        );
+      case 'Switch':
+        return (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <div
+              className={`w-8 h-4 rounded-full transition-colors ${Boolean(node.properties.value) ? 'bg-primary' : 'bg-muted'}`}
+            >
+              <div
+                className={`w-3 h-3 rounded-full bg-white shadow transition-transform ${Boolean(node.properties.value) ? 'translate-x-4' : 'translate-x-0.5'} mt-0.5`}
+              />
+            </div>
+            <span style={{ fontSize: 12 * textZoom }}>{String(node.properties.label || 'Switch')}</span>
+          </label>
+        );
+      case 'Slider':
+        return (
+          <input
+            type="range"
+            min={Number(node.properties.min || 0)}
+            max={Number(node.properties.max || 100)}
+            value={Number(node.properties.value || 50)}
+            readOnly
+            className="w-full h-1 bg-muted rounded-full appearance-none cursor-pointer"
+          />
+        );
+      case 'AppBar':
+        return (
+          <div
+            className="flex items-center justify-between px-3 py-2"
+            style={{
+              backgroundColor: String(node.properties.backgroundColor || '#2196F3'),
+            }}
+          >
+            <span
+              className="text-white font-medium"
+              style={{ fontSize: 14 * textZoom }}
+            >
+              {String(node.properties.title || 'AppBar')}
+            </span>
+          </div>
+        );
       default:
         return null;
     }
   };
-
-  const isLayoutWidget = ['Row', 'Column', 'Stack', 'ListView', 'GridView', 'Wrap'].includes(node.type);
 
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <motion.div
           className={`
-            relative rounded cursor-pointer transition-all
-            ${isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : 'hover:ring-2 hover:ring-purple-500/50'}
-            ${isDragOver && canHaveChildren ? 'ring-2 ring-green-500' : ''}
-            ${canHaveChildren && node.children.length === 0 ? 'min-h-[60px]' : ''}
+            relative rounded transition-all cursor-pointer
+            ${isSelected ? 'widget-selected' : 'widget-hover'}
+            ${isDragOver && canHaveChildren ? 'widget-drop-zone drag-over' : ''}
+            ${canHaveChildren && node.children.length === 0 && !isRoot ? 'min-h-[40px] border border-dashed border-muted-foreground/30' : ''}
           `}
           style={getWidgetStyle()}
           onClick={(e) => {
@@ -387,54 +531,50 @@ function WidgetNodeComponent({
           onDragOver={canHaveChildren ? onDragOver : undefined}
           onDragLeave={canHaveChildren ? onDragLeave : undefined}
           onDrop={canHaveChildren ? onDrop : undefined}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
+          whileHover={{ scale: 1.005 }}
+          whileTap={{ scale: 0.995 }}
         >
-          {/* Widget Label */}
-          {isSelected && (
-            <div className="absolute -top-6 left-0 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-t flex items-center gap-1">
-              {iconMap[node.type] || iconMap.default}
-              <span>{node.type}</span>
-            </div>
-          )}
+          {/* Widget Label Badge */}
+          <AnimatePresence>
+            {isSelected && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute -top-5 left-0 gradient-brand text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm z-10"
+              >
+                {iconMap[node.type] || iconMap.default}
+                <span>{node.type}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Drop Indicator */}
-          {isDragOver && canHaveChildren && (
-            <div className="absolute inset-0 border-2 border-dashed border-green-500 rounded bg-green-500/10 flex items-center justify-center">
-              <span className="text-xs text-green-600">Drop here</span>
-            </div>
-          )}
+          {/* Drop Indicator Overlay */}
+          <AnimatePresence>
+            {isDragOver && canHaveChildren && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 border-2 border-dashed border-primary rounded bg-primary/5 flex items-center justify-center z-20"
+              >
+                <div className="bg-primary text-primary-foreground text-[10px] px-2 py-1 rounded shadow">
+                  Drop here
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Content */}
-          {!isLayoutWidget && getWidgetContent()}
+          {!isLayoutWidget && !canHaveChildren && getWidgetContent()}
 
-          {/* Layout Widget Content */}
-          {isLayoutWidget && (
-            <div
-              className={`
-                ${node.type === 'Row' ? 'flex flex-row' : ''}
-                ${node.type === 'Column' ? 'flex flex-col' : ''}
-                ${node.type === 'Stack' ? 'relative' : ''}
-                ${node.type === 'Wrap' ? 'flex flex-wrap' : ''}
-                gap-2 p-2 w-full
-              `}
-              style={{
-                justifyContent: node.properties.mainAxisAlignment === 'center' ? 'center' :
-                               node.properties.mainAxisAlignment === 'end' ? 'flex-end' :
-                               node.properties.mainAxisAlignment === 'spaceBetween' ? 'space-between' :
-                               node.properties.mainAxisAlignment === 'spaceAround' ? 'space-around' :
-                               node.properties.mainAxisAlignment === 'spaceEvenly' ? 'space-evenly' :
-                               'flex-start',
-                alignItems: node.properties.crossAxisAlignment === 'center' ? 'center' :
-                           node.properties.crossAxisAlignment === 'end' ? 'flex-end' :
-                           node.properties.crossAxisAlignment === 'stretch' ? 'stretch' :
-                           'flex-start',
-              }}
-            >
+          {/* Container/Stack with children */}
+          {['Container', 'Stack', 'Card', 'Expanded', 'Drawer'].includes(node.type) && (
+            <div className="relative w-full h-full">
               {node.children.length === 0 ? (
-                <div className="flex-1 min-h-[40px] border border-dashed border-muted-foreground/30 rounded flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground">
-                    {node.type} - Drag widgets here
+                <div className="min-h-[40px] flex items-center justify-center p-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {node.type}
                   </span>
                 </div>
               ) : (
@@ -467,13 +607,35 @@ function WidgetNodeComponent({
             </div>
           )}
 
-          {/* Container/Stack with children */}
-          {['Container', 'Stack', 'Card', 'Expanded', 'Drawer'].includes(node.type) && (
-            <div className="relative w-full h-full">
+          {/* Layout Widget Content */}
+          {isLayoutWidget && (
+            <div
+              className={`
+                ${node.type === 'Row' ? 'flex flex-row' : ''}
+                ${node.type === 'Column' ? 'flex flex-col' : ''}
+                ${node.type === 'Stack' ? 'relative' : ''}
+                ${node.type === 'Wrap' ? 'flex flex-wrap' : ''}
+                ${node.type === 'ListView' ? 'flex flex-col overflow-auto' : ''}
+                ${node.type === 'GridView' ? 'grid grid-cols-2 gap-2' : ''}
+                gap-1.5 p-1.5 w-full min-h-[30px]
+              `}
+              style={{
+                justifyContent: node.properties.mainAxisAlignment === 'center' ? 'center' :
+                               node.properties.mainAxisAlignment === 'end' ? 'flex-end' :
+                               node.properties.mainAxisAlignment === 'spaceBetween' ? 'space-between' :
+                               node.properties.mainAxisAlignment === 'spaceAround' ? 'space-around' :
+                               node.properties.mainAxisAlignment === 'spaceEvenly' ? 'space-evenly' :
+                               'flex-start',
+                alignItems: node.properties.crossAxisAlignment === 'center' ? 'center' :
+                           node.properties.crossAxisAlignment === 'end' ? 'flex-end' :
+                           node.properties.crossAxisAlignment === 'stretch' ? 'stretch' :
+                           'flex-start',
+              }}
+            >
               {node.children.length === 0 ? (
-                <div className="min-h-[60px] border border-dashed border-muted-foreground/30 rounded flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground">
-                    {node.type} - Drag widgets here
+                <div className="flex-1 min-h-[30px] border border-dashed border-muted-foreground/20 rounded flex items-center justify-center">
+                  <span className="text-[10px] text-muted-foreground">
+                    {node.type}
                   </span>
                 </div>
               ) : (
@@ -512,7 +674,16 @@ function WidgetNodeComponent({
           <Copy className="mr-2 h-4 w-4" />
           Duplicate
         </ContextMenuItem>
-        <ContextMenuItem onClick={onDelete}>
+        <ContextMenuItem>
+          <ArrowUp className="mr-2 h-4 w-4" />
+          Move Up
+        </ContextMenuItem>
+        <ContextMenuItem>
+          <ArrowDown className="mr-2 h-4 w-4" />
+          Move Down
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
           <Trash2 className="mr-2 h-4 w-4" />
           Delete
         </ContextMenuItem>
