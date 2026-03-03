@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 225 25% 4%;
+    --foreground: 220 20% 97%;
+    --card: 225 20% 7%;
+    --card-foreground: 220 20% 97%;
+    --popover: 225 20% 7%;
+    --popover-foreground: 220 20% 97%;
+    --primary: 248 100% 71%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 15% 12%;
+    --secondary-foreground: 220 20% 97%;
+    --muted: 225 15% 12%;
+    --muted-foreground: 220 10% 68%;
+    --accent: 188 100% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 340 82% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 15% 15%;
+    --input: 225 15% 15%;
+    --ring: 248 100% 71%;
+    --radius: 0.625rem;
+    --sidebar-background: 225 20% 7%;
+    --sidebar-foreground: 220 20% 97%;
+    --sidebar-primary: 248 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 15% 12%;
+    --sidebar-accent-foreground: 220 20% 97%;
+    --sidebar-border: 225 15% 15%;
+    --sidebar-ring: 248 100% 71%;
+  }
+
+  .dark {
+    --background: 225 25% 4%;
+    --foreground: 220 20% 97%;
+    --card: 225 20% 7%;
+    --card-foreground: 220 20% 97%;
+    --popover: 225 20% 7%;
+    --popover-foreground: 220 20% 97%;
+    --primary: 248 100% 71%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 15% 12%;
+    --secondary-foreground: 220 20% 97%;
+    --muted: 225 15% 12%;
+    --muted-foreground: 220 10% 68%;
+    --accent: 188 100% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 340 82% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 15% 15%;
+    --input: 225 15% 15%;
+    --ring: 248 100% 71%;
+    --sidebar-background: 225 20% 7%;
+    --sidebar-foreground: 220 20% 97%;
+    --sidebar-primary: 248 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 15% 12%;
+    --sidebar-accent-foreground: 220 20% 97%;
+    --sidebar-border: 225 15% 15%;
+    --sidebar-ring: 248 100% 71%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+  
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #2D2D3D transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #2D2D3D;
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #3D3D4D;
+  }
+  
+  /* Glow effects */
+  .glow-violet {
+    box-shadow: 0 0 0 1px rgba(123, 109, 255, 0.55),
+                0 0 28px rgba(123, 109, 255, 0.25);
+  }
+  
+  .glow-cyan {
+    box-shadow: 0 0 0 1px rgba(46, 231, 255, 0.45),
+                0 0 22px rgba(46, 231, 255, 0.18);
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #7B6DFF 0%, #2EE7FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Glass effect */
+  .glass {
+    background: rgba(14, 17, 26, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  /* Animation utilities */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+}
+
+/* Monaco Editor customizations */
+.monaco-editor {
+  .overflow-guard {
+    border-radius: 0 !important;
+  }
+}
+
+/* Selection color */
+::selection {
+  background: rgba(123, 109, 255, 0.3);
+  color: #F2F4F8;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid rgba(123, 109, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
