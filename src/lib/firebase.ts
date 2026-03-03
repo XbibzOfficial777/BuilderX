@@ -4,13 +4,13 @@ import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAwitkeoSDxHgfQn4-eQ8t4_2BZ77ceIyo",
-  authDomain: "studio-pcuih.firebaseapp.com",
-  databaseURL: "https://studio-pcuih-default-rtdb.firebaseio.com",
-  projectId: "studio-pcuih",
-  storageBucket: "studio-pcuih.firebasestorage.app",
-  messagingSenderId: "262161066351",
-  appId: "1:262161066351:web:9957c8bd83f196dcc5e09a"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAwitkeoSDxHgfQn4-eQ8t4_2BZ77ceIyo",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "studio-pcuih.firebaseapp.com",
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || "https://studio-pcuih-default-rtdb.firebaseio.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "studio-pcuih",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "studio-pcuih.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "262161066351",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:262161066351:web:9957c8bd83f196dcc5e09a"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -20,7 +20,7 @@ export const googleProvider = new GoogleAuthProvider();
 export const database = getDatabase(app);
 export const storage = getStorage(app);
 
-export const CATBOX_USERHASH = "5248d18542a1e43ae36a18ba0";
+export const CATBOX_USERHASH = process.env.NEXT_PUBLIC_CATBOX_USERHASH || "5248d18542a1e43ae36a18ba0";
 export const CATBOX_API_URL = "https://catbox.moe/user/api.php";
 
 export type FileType = 'image' | 'video' | 'audio' | 'document' | 'other';
