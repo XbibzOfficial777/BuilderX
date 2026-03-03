@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "bun install",
   "buildCommand": "next build",
+  "devCommand": "next dev",
+  "installCommand": "bun install",
+  "outputDirectory": ".next",
   "regions": ["iad1"],
   "headers": [
     {
@@ -12,6 +14,12 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(?!api)(.*)",
+      "destination": "/"
     }
   ]
 }
