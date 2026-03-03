@@ -250,7 +250,7 @@ export default function ChatPage() {
       timestamp: Date.now(),
       type: 'text',
       readBy: { [user.uid]: Date.now() },
-      ...(replyingTo?.id ? { replyTo: replyingTo.id } : {}),
+      replyTo: replyingTo?.id,
     };
 
     await set(ref(database, `chats/${activeChatId}/messages/${messageId}`), messageData);
@@ -333,7 +333,7 @@ export default function ChatPage() {
         mediaSize: file.size,
         mediaName: file.name,
         readBy: { [user.uid]: Date.now() },
-        ...(replyingTo?.id ? { replyTo: replyingTo.id } : {}),
+        replyTo: replyingTo?.id,
       };
 
       await set(ref(database, `chats/${activeChatId}/messages/${messageId}`), messageData);

@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "buildCommand": "prisma generate && next build",
+  "devCommand": "next dev",
   "installCommand": "bun install",
-  "buildCommand": "next build",
+  "outputDirectory": ".next",
   "regions": ["iad1"],
   "headers": [
     {
@@ -13,5 +15,15 @@
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NEXT_PUBLIC_FIREBASE_API_KEY": "AIzaSyAwitkeoSDxHgfQn4-eQ8t4_2BZ77ceIyo",
+    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "studio-pcuih.firebaseapp.com",
+    "NEXT_PUBLIC_FIREBASE_DATABASE_URL": "https://studio-pcuih-default-rtdb.firebaseio.com",
+    "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "studio-pcuih",
+    "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "studio-pcuih.firebasestorage.app",
+    "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "262161066351",
+    "NEXT_PUBLIC_FIREBASE_APP_ID": "1:262161066351:web:9957c8bd83f196dcc5e09a",
+    "NEXT_PUBLIC_CATBOX_USERHASH": "5248d18542a1e43ae36a18ba0"
+  }
 }

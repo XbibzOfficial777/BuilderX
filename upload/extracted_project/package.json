@@ -1,18 +1,17 @@
 {
-  "name": "catbox-manager-pro",
+  "name": "nextjs_tailwind_shadcn_ts",
   "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "prisma generate && next build",
-    "vercel-build": "prisma generate && next build",
+    "build": "next build",
+    "vercel-build": "next build",
     "start": "next start -p 3000",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset",
-    "postinstall": "prisma generate"
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
