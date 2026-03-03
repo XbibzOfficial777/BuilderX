@@ -1,0 +1,21 @@
+{
+  "name": "Catbox Manager Pro",
+  "short_name": "Catbox Manager",
+  "description": "Upload, organize, and share your files seamlessly with Catbox Manager Pro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

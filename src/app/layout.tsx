@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "next-themes";
-import { AuthProvider } from "@/contexts/auth-context";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,13 +16,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FlutterForge - Visual Flutter Development Platform",
-  description: "Build Flutter apps visually with drag-and-drop UI builder, live preview, and Dart code generation.",
-  keywords: ["Flutter", "Visual Development", "Drag and Drop", "Dart", "Code Generation", "UI Builder"],
-  authors: [{ name: "FlutterForge Team" }],
+  title: "Catbox Manager Pro - File Management Made Easy",
+  description: "Upload, organize, and share your files seamlessly with Catbox Manager Pro. Built with powerful features and beautiful design.",
+  keywords: ["Catbox", "File Manager", "Upload", "Share", "Cloud Storage", "Next.js"],
+  authors: [{ name: "Catbox Manager Team" }],
+  manifest: "/manifest.json",
   icons: {
     icon: "/logo.svg",
   },
+  openGraph: {
+    title: "Catbox Manager Pro",
+    description: "File Management Made Easy",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Catbox Manager Pro",
+    description: "File Management Made Easy",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -37,13 +57,13 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
           <AuthProvider>
             {children}
-            <Toaster position="bottom-right" />
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
       </body>
