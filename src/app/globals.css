@@ -24,6 +24,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -60,6 +61,7 @@
   --accent: oklch(0.96 0.015 280);
   --accent-foreground: oklch(0.2 0.02 260);
   --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.92 0.005 260);
   --input: oklch(0.92 0.005 260);
   --ring: oklch(0.55 0.25 270);
@@ -101,6 +103,7 @@
   --accent: oklch(0.25 0.03 280);
   --accent-foreground: oklch(0.95 0.01 260);
   --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.25 0.02 270);
   --input: oklch(0.22 0.02 270);
   --ring: oklch(0.7 0.22 270);
@@ -145,23 +148,66 @@
   ::selection {
     background-color: oklch(0.6 0.2 270 / 0.3);
   }
+  
+  /* Focus styles */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
-@layer utilities {
-  /* Glassmorphism effect */
+@layer components {
+  /* Glass effect for cards and panels */
   .glass {
-    background: oklch(1 0 0 / 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: oklch(1 0 0 / 0.8);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
   }
   
   .dark .glass {
-    background: oklch(0.15 0.02 270 / 0.8);
+    background: oklch(0.16 0.02 270 / 0.85);
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300;
   }
   
+  .card-hover:hover {
+    @apply shadow-lg;
+    transform: translateY(-4px);
+  }
+
+  /* Button enhancements */
+  .btn-gradient {
+    background: var(--gradient-primary);
+    @apply text-white font-medium;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-gradient:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px oklch(0.55 0.25 270 / 0.4);
+  }
+
+  /* Input focus glow */
+  .input-glow:focus {
+    box-shadow: 0 0 0 3px oklch(0.55 0.25 270 / 0.15);
+  }
+}
+
+@layer utilities {
   /* Gradient text */
   .gradient-text {
     background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .dark .gradient-text {
+    background: linear-gradient(135deg, oklch(0.7 0.22 270), oklch(0.65 0.25 290));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -310,116 +356,11 @@
   .dark .glow {
     box-shadow: 0 0 30px oklch(0.7 0.22 270 / 0.4);
   }
-}
 
-/* Focus styles */
-@layer base {
-  *:focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
-  }
-}
-
-/* Card hover effects */
-@layer components {
-  .card-hover {
-    @apply transition-all duration-300;
-  }
-  
-  .card-hover:hover {
-    @apply shadow-lg;
-    transform: translateY(-4px);
-  }
-}
-
-/* Button enhancements */
-@layer components {
-  .btn-gradient {
-    background: var(--gradient-primary);
-    @apply text-white font-medium;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-gradient:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px oklch(0.55 0.25 270 / 0.4);
-  }
-}
-
-/* Input focus glow */
-@layer components {
-  .input-glow:focus {
-    box-shadow: 0 0 0 3px oklch(0.55 0.25 270 / 0.2);
-  }
-}
-
-/* Mobile responsive utilities */
-@layer utilities {
+  /* Mobile responsive utilities */
   @media (max-width: 768px) {
     .mobile-full {
       width: 100%;
     }
-  }
-}
-
-/* Custom component styles */
-@layer components {
-  /* Glass effect for cards and panels */
-  .glass {
-    background: oklch(1 0 0 / 0.8);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-  }
-  
-  .dark .glass {
-    background: oklch(0.16 0.02 270 / 0.85);
-  }
-  
-  /* Input glow effect */
-  .input-glow:focus {
-    box-shadow: 0 0 0 3px oklch(0.55 0.25 270 / 0.15);
-  }
-  
-  /* Hover lift effect */
-  .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Tailwind additional utilities */
-@layer utilities {
-  .gradient-text {
-    background: linear-gradient(135deg, oklch(0.55 0.25 270), oklch(0.6 0.22 290));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .dark .gradient-text {
-    background: linear-gradient(135deg, oklch(0.7 0.22 270), oklch(0.65 0.25 290));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .gradient-primary {
-    background: linear-gradient(135deg, oklch(0.55 0.25 270), oklch(0.6 0.22 290));
-  }
-  
-  .btn-gradient {
-    background: linear-gradient(135deg, oklch(0.55 0.25 270), oklch(0.6 0.22 290));
-    @apply text-white font-medium;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-gradient:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px oklch(0.55 0.25 270 / 0.4);
   }
 }

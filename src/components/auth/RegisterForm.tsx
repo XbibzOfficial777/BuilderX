@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { debounce } from '@/lib/utils';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -24,21 +23,28 @@ export function RegisterForm() {
   const { register, loginWithGoogle, checkUsernameAvailability } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const checkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const checkUsername = debounce(async (value: string) => {
+  const checkUsername = useCallback((value: string) => {
     if (value.length < 3) {
       setUsernameStatus(null);
       return;
     }
     
-    setUsernameStatus('checking');
-    try {
-      const isAvailable = await checkUsernameAvailability(value);
-      setUsernameStatus(isAvailable ? 'available' : 'taken');
-    } catch {
-      setUsernameStatus(null);
+    if (checkTimeoutRef.current) {
+      clearTimeout(checkTimeoutRef.current);
     }
-  }, 300);
+
+    setUsernameStatus('checking');
+    checkTimeoutRef.current = setTimeout(async () => {
+      try {
+        const isAvailable = await checkUsernameAvailability(value);
+        setUsernameStatus(isAvailable ? 'available' : 'taken');
+      } catch {
+        setUsernameStatus(null);
+      }
+    }, 300);
+  }, [checkUsernameAvailability]);
 
   const handleUsernameChange = (value: string) => {
     const sanitized = value.toLowerCase().replace(/[^a-z0-9_]/g, '');

@@ -376,11 +376,12 @@ function LoadingScreen() {
   );
 }
 
-function StatsCard({ title, value, icon, color }: {
+function StatsCard({ title, value, icon, color, variants: _variants }: {
   title: string;
   value: string;
   icon: React.ReactNode;
   color: string;
+  variants?: Record<string, unknown>;
 }) {
   return (
     <motion.div variants={item}>

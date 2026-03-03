@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useRef, useCallback, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,7 +33,6 @@ import {
 import { useTheme } from 'next-themes';
 import { useAuthStore, useUIStore } from '@/store';
 import { useAuth } from '@/contexts/AuthContext';
-import { debounce } from '@/lib/utils';
 
 // Custom hook for mounted state without useEffect
 function useMounted() {
@@ -62,6 +61,7 @@ export function Navbar() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const mounted = useMounted();
   const router = useRouter();
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const performSearch = async (query: string) => {
     if (!query.trim() || query.length < 2) {
@@ -85,10 +85,15 @@ export function Navbar() {
     }
   };
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
-    debounce(() => performSearch(value), 300)();
-  };
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(value);
+    }, 300);
+  }, []);
 
   const handleUserClick = (username: string) => {
     setSearchQuery('');
